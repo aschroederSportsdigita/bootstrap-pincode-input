@@ -26,6 +26,7 @@
     // Create the defaults once
     var pluginName = "pincodeInput";
     var defaults = {
+        value: "",
         placeholders: undefined, // seperate with a " "(space) to set an placeholder for each input box
         inputs: 4, // 4 input boxes = code of 4 digits long
         hidedigits: true, // hide digits
@@ -88,8 +89,7 @@
         buildInputBoxes: function() {
             this._container = $('<div />').addClass('pincode-input-container');
 
-
-
+            var initialValue = this.settings.value || $(this.element).val() != "";
             var currentValue = [];
             var placeholders = [];
             var touchplaceholders = ""; //in touch mode we have just 1 big input box, and there is only 1 placeholder in this case
@@ -101,14 +101,14 @@
 
             // If we do not hide digits, we need to include the current value of the input box
             // This will only work if the current value is not longer than the number of input boxes.
-            if (this.settings.hidedigits == false && $(this.element).val() != "") {
-                currentValue = $(this.element).val().split("");
+            if (this.settings.hidedigits == false && initialValue) {
+                currentValue = initialValue.split("");
             }
 
             // make sure this is the first password field here
             if (this.settings.hidedigits) {
                 this._pwcontainer = $('<div />').css("display", "none").appendTo(this._container);
-                this._pwfield = $('<input>').attr({ 'type': 'password', 'pattern': "[0-9]*", 'inputmode': "numeric", 'autocomplete': 'off' }).appendTo(this._pwcontainer);
+                this._pwfield = $('<input>').attr({ 'type': 'password', 'pattern': "[0-9]*", 'inputmode': "numeric", 'id': 'preventautofill', 'autocomplete': 'off' }).appendTo(this._pwcontainer);
             }
 
             if (this._isTouchDevice()) {
@@ -137,7 +137,7 @@
                     input.attr('type', 'password');
                 } else {
                     // show digits, also include default value
-                    input.val(currentValue[i]);
+                    input.val(initialValue);
                 }
 
                 // add events
@@ -176,6 +176,20 @@
             //hide original element and place this before it
             $(this.element).css("display", "none");
             this._container.insertBefore(this.element);
+        },
+        getValue: function() {
+            return $(this.element).val();
+        },
+        setValue: function(value) {
+            $(this.element).val(value);
+
+            $('.pincode-input-text', this._container).each(function(index, inputElement) {
+                $(inputElement).val(value[index]);
+            });
+
+            if (this.settings.change) {
+                this.settings.change(null, null, null, value);
+            }
         },
         enable: function() {
             $('.pincode-input-text', this._container).each(function(index, value) {
@@ -278,7 +292,7 @@
 
                 //onchange event for each input
                 if (this.settings.change) {
-                    this.settings.change(e.currentTarget, $(e.currentTarget).val(), inputnumber);
+                    this.settings.change(e.currentTarget, $(e.currentTarget).val(), inputnumber, $(this.element).val());
                 }
 
 
@@ -303,11 +317,12 @@
     // A really lightweight plugin wrapper around the constructor,
     // preventing against multiple instantiations
     $.fn[pluginName] = function(options) {
-        return this.each(function() {
+        var test = this.each(function() {
             if (!$.data(this, "plugin_" + pluginName)) {
                 $.data(this, "plugin_" + pluginName, new Plugin(this, options));
             }
         });
+        return test;
     };
 
 })(jQuery, window, document);
