@@ -185,7 +185,9 @@
 
             if (!this._isTouchDevice()) {
                 $('.pincode-input-text', this._container).each(function(index, inputElement) {
-                    $(inputElement).val(value[index]);
+                    if (value) {
+                        $(inputElement).val(value[index]);
+                    }
                 });
             }
 
