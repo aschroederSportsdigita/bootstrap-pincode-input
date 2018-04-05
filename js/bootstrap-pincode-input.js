@@ -183,9 +183,11 @@
         setValue: function(value) {
             $(this.element).val(value);
 
-            $('.pincode-input-text', this._container).each(function(index, inputElement) {
-                $(inputElement).val(value[index]);
-            });
+            if (!this._isTouchDevice()) {
+                $('.pincode-input-text', this._container).each(function(index, inputElement) {
+                    $(inputElement).val(value[index]);
+                });
+            }
 
             if (this.settings.change) {
                 this.settings.change(null, null, null, value);
